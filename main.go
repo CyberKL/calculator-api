@@ -161,6 +161,12 @@ func handleSum(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Check if the array is empty
+	if len(numbers) == 0 {
+		writeJSON(w, http.StatusBadRequest, Response{Error: "Input array cannot be empty"})
+		return
+	}
+	
 	result := 0
 	for _, number := range numbers {
 		result += number
