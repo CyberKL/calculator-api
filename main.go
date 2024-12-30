@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"errors"
 	"log"
 	"net/http"
 )
@@ -11,29 +12,34 @@ func main() {
 	http.HandleFunc("/subtract", handleSubtract)
 	http.HandleFunc("/multiply", handleMultiply)
 	http.HandleFunc("/divide", handleDivide)
-	
-	if err := http.ListenAndServe(":8080", nil); err != nil {
+
+	if err := http.ListenAndServe(":3000", nil); err != nil {
 		log.Fatal(err)
 	}
 }
 
 type Response struct {
-	Result float64 `json:"result"`
-	Error  string  `json:"error,omitempty"`
+	Result int    `json:"result"`
+	Error  string `json:"error,omitempty"`
 }
 
 type Operands struct {
-	A float64 `json:"a"`
-	B float64 `json:"b"`
+	Number1 float64 `json:"number1"`
+	Number2 float64 `json:"number2"`
 }
 
-func getOperands(r *http.Request) (float64, float64, error) {
+func getOperands(r *http.Request) (int, int, error) {
 	operands := &Operands{}
 	if err := json.NewDecoder(r.Body).Decode(operands); err != nil {
 		return 0, 0, err
 	}
 
-	return operands.A, operands.B, nil
+	// Validate that the numbers are whole numbers
+	if operands.Number1 != float64(int(operands.Number1)) || operands.Number2 != float64(int(operands.Number2)) {
+		return 0, 0, errors.New("Operands must be whole numbers")
+	}
+
+	return int(operands.Number1), int(operands.Number2), nil
 }
 
 func writeJSON(w http.ResponseWriter, s int, v Response) {
@@ -50,14 +56,18 @@ func handleAdd(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	a, b, err := getOperands(r)
+	number1, number2, err := getOperands(r)
 	if err != nil {
-		log.Println(err)
-		writeJSON(w, http.StatusBadRequest, Response{Error: "Invalid JSON payload"})
+		if err.Error() == "Operands must be whole numbers" {
+			writeJSON(w, http.StatusBadRequest, Response{Error: "Operands must be whole numbers"})
+		} else {
+			log.Println(err)
+			writeJSON(w, http.StatusBadRequest, Response{Error: "Invalid JSON payload"})
+		}
 		return
 	}
 
-	result := Response{Result: a + b}
+	result := Response{Result: number1 + number2}
 	writeJSON(w, http.StatusOK, result)
 }
 
@@ -67,14 +77,18 @@ func handleSubtract(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	a, b, err := getOperands(r)
+	number1, number2, err := getOperands(r)
 	if err != nil {
-		log.Println(err)
-		writeJSON(w, http.StatusBadRequest, Response{Error: "Invalid JSON payload"})
+		if err.Error() == "Operands must be whole numbers" {
+			writeJSON(w, http.StatusBadRequest, Response{Error: "Operands must be whole numbers"})
+		} else {
+			log.Println(err)
+			writeJSON(w, http.StatusBadRequest, Response{Error: "Invalid JSON payload"})
+		}
 		return
 	}
 
-	result := Response{Result: a - b}
+	result := Response{Result: number1 - number2}
 	writeJSON(w, http.StatusOK, result)
 }
 
@@ -84,14 +98,18 @@ func handleMultiply(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	a, b, err := getOperands(r)
+	number1, number2, err := getOperands(r)
 	if err != nil {
-		log.Println(err)
-		writeJSON(w, http.StatusBadRequest, Response{Error: "Invalid JSON payload"})
+		if err.Error() == "Operands must be whole numbers" {
+			writeJSON(w, http.StatusBadRequest, Response{Error: "Operands must be whole numbers"})
+		} else {
+			log.Println(err)
+			writeJSON(w, http.StatusBadRequest, Response{Error: "Invalid JSON payload"})
+		}
 		return
 	}
 
-	result := Response{Result: a * b}
+	result := Response{Result: number1 * number2}
 	writeJSON(w, http.StatusOK, result)
 }
 
@@ -101,18 +119,22 @@ func handleDivide(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	a, b, err := getOperands(r)
+	number1, number2, err := getOperands(r)
 	if err != nil {
-		log.Println(err)
-		writeJSON(w, http.StatusBadRequest, Response{Error: "Invalid JSON payload"})
+		if err.Error() == "Operands must be whole numbers" {
+			writeJSON(w, http.StatusBadRequest, Response{Error: "Operands must be whole numbers"})
+		} else {
+			log.Println(err)
+			writeJSON(w, http.StatusBadRequest, Response{Error: "Invalid JSON payload"})
+		}
 		return
 	}
 
-	if b == 0 {
+	if number2 == 0 {
 		writeJSON(w, http.StatusBadRequest, Response{Error: "Division by zero is not allowed"})
 		return
 	}
 
-	result := Response{Result: a / b}
+	result := Response{Result: number1 / number2}
 	writeJSON(w, http.StatusOK, result)
 }
