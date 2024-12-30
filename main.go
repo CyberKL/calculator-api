@@ -12,6 +12,7 @@ func main() {
 	http.HandleFunc("/subtract", handleSubtract)
 	http.HandleFunc("/multiply", handleMultiply)
 	http.HandleFunc("/divide", handleDivide)
+	http.HandleFunc("/sum", handleSum)
 
 	if err := http.ListenAndServe(":3000", nil); err != nil {
 		log.Fatal(err)
@@ -137,4 +138,33 @@ func handleDivide(w http.ResponseWriter, r *http.Request) {
 
 	result := Response{Result: number1 / number2}
 	writeJSON(w, http.StatusOK, result)
+}
+
+func getNumbers(r *http.Request) ([]int, error) {
+	var numbers []int
+	if err := json.NewDecoder(r.Body).Decode(&numbers); err != nil {
+		return nil, err
+	}
+
+	return numbers, nil
+}
+
+func handleSum(w http.ResponseWriter, r *http.Request) {
+	if r.Method != http.MethodPost {
+		writeJSON(w, http.StatusMethodNotAllowed, Response{Error: "Method not allowed"})
+		return
+	}
+
+	numbers, err := getNumbers(r)
+	if err != nil {
+		writeJSON(w, http.StatusBadRequest, Response{Error: "Invalid JSON payload"})
+		return
+	}
+
+	result := 0
+	for _, number := range numbers {
+		result += number
+	}
+	
+	writeJSON(w, http.StatusOK, Response{Result: result})
 }
