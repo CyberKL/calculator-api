@@ -3,8 +3,9 @@ package main
 import (
 	"encoding/json"
 	"errors"
-	"log"
+	"log/slog"
 	"net/http"
+	"os"
 )
 
 func main() {
@@ -14,8 +15,14 @@ func main() {
 	http.HandleFunc("/divide", handleDivide)
 	http.HandleFunc("/sum", handleSum)
 
+	logger := slog.New(slog.NewJSONHandler(os.Stdout, nil))
+	slog.SetDefault(logger)
+	
+	slog.Info("Starting server on port 3000")
 	if err := http.ListenAndServe(":3000", nil); err != nil {
-		log.Fatal(err)
+		slog.Error(
+			"Server failed to start", 
+			slog.String("error", err.Error()))
 	}
 }
 
@@ -62,7 +69,10 @@ func handleAdd(w http.ResponseWriter, r *http.Request) {
 		if err.Error() == "Operands must be whole numbers" {
 			writeJSON(w, http.StatusBadRequest, Response{Error: "Operands must be whole numbers"})
 		} else {
-			log.Println(err)
+			slog.Error(
+				"Error in getOperands()",
+				slog.String("error", err.Error()))
+
 			writeJSON(w, http.StatusBadRequest, Response{Error: "Invalid JSON payload"})
 		}
 		return
@@ -83,7 +93,10 @@ func handleSubtract(w http.ResponseWriter, r *http.Request) {
 		if err.Error() == "Operands must be whole numbers" {
 			writeJSON(w, http.StatusBadRequest, Response{Error: "Operands must be whole numbers"})
 		} else {
-			log.Println(err)
+			slog.Error(
+				"Error in getOperands()",
+				slog.String("error", err.Error()))
+
 			writeJSON(w, http.StatusBadRequest, Response{Error: "Invalid JSON payload"})
 		}
 		return
@@ -104,7 +117,10 @@ func handleMultiply(w http.ResponseWriter, r *http.Request) {
 		if err.Error() == "Operands must be whole numbers" {
 			writeJSON(w, http.StatusBadRequest, Response{Error: "Operands must be whole numbers"})
 		} else {
-			log.Println(err)
+			slog.Error(
+				"Error in getOperands()",
+				slog.String("error", err.Error()))
+
 			writeJSON(w, http.StatusBadRequest, Response{Error: "Invalid JSON payload"})
 		}
 		return
@@ -125,7 +141,10 @@ func handleDivide(w http.ResponseWriter, r *http.Request) {
 		if err.Error() == "Operands must be whole numbers" {
 			writeJSON(w, http.StatusBadRequest, Response{Error: "Operands must be whole numbers"})
 		} else {
-			log.Println(err)
+			slog.Error(
+				"Error in getOperands()",
+				slog.String("error", err.Error()))
+
 			writeJSON(w, http.StatusBadRequest, Response{Error: "Invalid JSON payload"})
 		}
 		return
